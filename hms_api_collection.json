@@ -1,0 +1,419 @@
+{
+	"info": {
+		"_postman_id": "7d9e8f1b-3c4d-4e5f-a6a7-b8c9d0e1f2a3",
+		"name": "Hospital Management System API v2",
+		"description": "API collection for testing the Hospital Management System (HMS) backend including Diagnosis, Pharmacy, and Inventory.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "General",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Patients",
+			"item": [
+				{
+					"name": "Register Patient",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John Doe\",\n    \"age\": 45,\n    \"gender\": \"Male\",\n    \"phone\": \"9876543210\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/patients",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"patients"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Patient History",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/patients/1/history",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"patients",
+								"1",
+								"history"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Consultations",
+			"item": [
+				{
+					"name": "Create Consultation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"patient_id\": \"PASTE_PATIENT_ID_HERE\",\n    \"doctor_id\": \"PASTE_DOCTOR_ID_HERE\",\n    \"symptoms\": \"Persistent cough and mild fever\",\n    \"diagnosis\": \"Upper respiratory tract infection\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/consultations",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"consultations"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Prescriptions",
+			"item": [
+				{
+					"name": "Create Prescription",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"consultation_id\": \"PASTE_CONSULTATION_ID_HERE\",\n    \"items\": [\n        {\n            \"medicine_id\": \"PASTE_MEDICINE_ID_HERE\",\n            \"dosage\": \"500mg, twice a day\",\n            \"duration\": \"5 days\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/prescriptions",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"prescriptions"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Diagnosis",
+			"item": [
+				{
+					"name": "Request Diagnosis",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"consultation_id\": 1,\n    \"test_name\": \"X-Ray Chest\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/diagnosis/request",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"diagnosis",
+								"request"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Report",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"request_id\": 1,\n    \"report_url\": \"http://lab.link/reports/xr123.pdf\",\n    \"result\": \"Clear lungs, no signs of infection.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/diagnosis/report",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"diagnosis",
+								"report"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Requests",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/diagnosis/requests",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"diagnosis",
+								"requests"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Pharmacy",
+			"item": [
+				{
+					"name": "Generate Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"prescription_id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/pharmacy/token",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"pharmacy",
+								"token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Prescriptions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/pharmacy/prescriptions/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"pharmacy",
+								"prescriptions",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Dispense Medicine",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"prescription_id\": 1,\n    \"items\": [\n        {\n            \"medicine_id\": 1,\n            \"quantity\": 10\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/pharmacy/dispense",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"pharmacy",
+								"dispense"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Inventory & Notifications",
+			"item": [
+				{
+					"name": "Inventory Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/inventory",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"inventory"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Inventory Inward",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"medicine_id\": 1,\n    \"quantity\": 50\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/inventory/inward",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"inventory",
+								"inward"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send Notification",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_id\": 1,\n    \"message\": \"Your reports are ready!\",\n    \"type\": \"Report\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/notifications/notifications/send",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"notifications",
+								"send"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Debug",
+			"item": [
+				{
+					"name": "Show All Data (Full DB)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/debug/all-data",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"debug",
+								"all-data"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000",
+			"type": "string"
+		}
+	]
+}

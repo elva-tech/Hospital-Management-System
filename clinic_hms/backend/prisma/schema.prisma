@@ -1,0 +1,135 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  DOCTOR
+  RECEPTIONIST
+  PHARMACIST
+}
+
+enum QueueStatus {
+  WAITING
+  IN_CONSULTATION
+  COMPLETED
+}
+
+enum PrescriptionStatus {
+  PENDING
+  DISPENSED
+}
+
+enum PaymentMode {
+  CASH
+  UPI
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  name          String
+  phone         String         @unique
+  password      String
+  role          Role           @default(RECEPTIONIST)
+  createdAt     DateTime       @default(now())
+  consultations Consultation[]
+}
+
+model Patient {
+  id            Int            @id @default(autoincrement())
+  phone         String         @unique
+  name          String
+  age           Int
+  gender        String
+  address       String?
+  createdAt     DateTime       @default(now())
+  queues        Queue[]
+  consultations Consultation[]
+  billings      Billing[]
+}
+
+model Queue {
+  id          Int         @id @default(autoincrement())
+  patientId   Int
+  patient     Patient     @relation(fields: [patientId], references: [id])
+  tokenNumber Int
+  status      QueueStatus @default(WAITING)
+  date        DateTime    @default(now())
+}
+
+model Consultation {
+  id           Int            @id @default(autoincrement())
+  patientId    Int
+  patient      Patient        @relation(fields: [patientId], references: [id])
+  doctorId     Int
+  doctor       User           @relation(fields: [doctorId], references: [id])
+  symptoms     String
+  diagnosis    String?
+  notes        String?
+  date         DateTime       @default(now())
+  prescription Prescription?
+  diagnosisRequests DiagnosisRequest[]
+  billing      Billing?
+}
+
+model DiagnosisRequest {
+  id             Int          @id @default(autoincrement())
+  consultationId Int
+  consultation   Consultation @relation(fields: [consultationId], references: [id])
+  testName       String       // E.g., X-Ray, Blood Test
+  results        String?      // Lab results text
+  reportUrl      String?      // Link to report (optional)
+  status         String       @default("PENDING") // PENDING, COMPLETED
+  createdAt      DateTime     @default(now())
+}
+
+model Prescription {
+  id             Int                @id @default(autoincrement())
+  consultationId Int                @unique
+  consultation   Consultation       @relation(fields: [consultationId], references: [id])
+  status         PrescriptionStatus @default(PENDING)
+  createdAt      DateTime           @default(now())
+  items          PrescriptionItem[]
+}
+
+model PrescriptionItem {
+  id             Int          @id @default(autoincrement())
+  prescriptionId Int
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  medicineId     Int
+  medicine       Medicine     @relation(fields: [medicineId], references: [id])
+  dosage         String
+  duration       String
+  quantity       Int
+}
+
+model Medicine {
+  id                Int                @id @default(autoincrement())
+  name              String             @unique
+  stock             Int                @default(0)
+  price             Float
+  createdAt         DateTime           @default(now())
+  prescriptionItems PrescriptionItem[]
+}
+
+model Billing {
+  id             Int           @id @default(autoincrement())
+  patientId      Int
+  patient        Patient       @relation(fields: [patientId], references: [id])
+  consultationId Int?          @unique
+  consultation   Consultation? @relation(fields: [consultationId], references: [id])
+  amount         Float
+  paymentMode    PaymentMode?
+  status         PaymentStatus @default(PENDING)
+  date           DateTime      @default(now())
+}
