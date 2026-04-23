@@ -1,12 +1,26 @@
-const { Prescription, Medicine, PharmacySale, mongoose } = require('../../models/mongodb');
-
-// @desc    Generate pharmacy token (Mock)
+const { Prescription, Medicine, PharmacySale } = require('../models');
+const mongoose = require('mongoose');
+// @desc    Generate pharmacy token (True Tokenization)
 const generateToken = async (req, res, next) => {
   try {
     const { prescription_id } = req.body;
+    
+    // Generate secure token
+    const crypto = require('crypto');
+    const token = `TKN-${crypto.randomBytes(3).toString('hex').toUpperCase()}`;
+    
+    // Save to Prescription
+    const prescription = await Prescription.findById(prescription_id);
+    if (!prescription) {
+        res.status(404);
+        throw new Error('Prescription not found');
+    }
+    prescription.pharmacy_token = token;
+    await prescription.save();
+    
     res.status(200).json({
       success: true,
-      token: `MONGO-TOKEN-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+      token,
       prescription_id
     });
   } catch (error) {
@@ -117,10 +131,23 @@ const getInventoryStatus = async (req, res, next) => {
 const sendNotification = async (req, res, next) => {
   try {
     const { user_id, message, type } = req.body;
-    console.log(`[MONGO-DEMO] Notification to ${user_id}: ${message}`);
+    
+    const { sendMessage } = require('../services/whatsappService');
+    const { generateReceiptPDF } = require('../services/pdfService');
+    
+    let pdfBuffer = null;
+    try {
+        pdfBuffer = await generateReceiptPDF({ user_id, message, type });
+    } catch (pdfErr) {
+        console.error('Failed to generate PDF, falling back to text only', pdfErr);
+    }
+    
+    const result = await sendMessage(user_id, message, pdfBuffer);
+    
     res.status(200).json({
       success: true,
-      message: 'Notification sent successfully'
+      message: 'Notification processed with PDF',
+      deliveredLocally: result
     });
   } catch (error) {
     next(error);

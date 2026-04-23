@@ -1,4 +1,4 @@
-const { Prescription, Consultation, Medicine } = require('../../models/mongodb');
+const { Prescription, Consultation, Medicine } = require('../models');
 
 // @desc    Create a new prescription
 // @route   POST /api/prescriptions

@@ -1,6 +1,7 @@
 const app = require('./app');
 const connectDB = require('./config/mongodb');
 const seedMongoData = require('./config/mongo_seeder');
+const { initWhatsApp } = require('./services/whatsappService');
 require('dotenv').config();
 
 const PORT = process.env.PORT || 5000;
@@ -12,6 +13,9 @@ const startServer = async () => {
     
     // Seed initial data
     await seedMongoData();
+
+    // Initialize WhatsApp Connection
+    initWhatsApp();
 
     app.listen(PORT, () => {
       console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);

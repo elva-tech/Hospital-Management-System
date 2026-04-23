@@ -1,22 +1,90 @@
-# Clinic HMS - Full-Stack Application
+# Clinic HMS - Hospital Management System
 
-The system has been completely built and containerized.
+A production-ready, full-stack Hospital Management System (HMS) designed for small to medium-sized clinics. This system streamlines clinic operations by managing patient records, doctor consultations, pharmacy inventory, and billing, all integrated with automated WhatsApp notifications.
 
-### How to Run:
-1. Open terminal and navigate to `/home/ravella/Videos/hms/clinic_hms`.
-2. Run `docker compose up --build`.
-3. Open your browser to `http://localhost:5173`.
+## 🚀 Key Features
 
-### Pre-configured Login Accounts (Phone / Password: `password123`):
-*   **Receptionist**: `9999999993`
-*   **Doctor**: `9999999992`
-*   **Pharmacist**: `9999999994`
-*   **Admin**: `9999999991`
+### 👥 User Roles & Access Control
+- **Receptionist**: Patient registration, queue management, and final billing.
+- **Doctor**: Digital consultations, diagnosis entry, and electronic prescriptions.
+- **Pharmacist**: Prescription fulfillment and automated inventory management.
+- **Admin**: Comprehensive system overview and user management.
 
-### Workflow Simulation:
-1.  **Login as Receptionist**: Register a patient by entering their phone number and add them to the queue.
-2.  **Login as Doctor**: See the patient in the "Waiting Room" section. Call them in, add a diagnosis, add medicines to the prescription (simulates picking from inventory stock), and click Finish.
-3.  **Login as Pharmacist**: See the pending prescription, confirm the medicines, and click "Dispense" (reduces stock automatically).
-4.  **Login back as Receptionist (Billing)**: Search the patient's phone number, view the generated invoice encompassing doctor fees and medicines, select a payment mode, and mark it as PAID.
+### 🏥 Core Modules
+- **Queue Management**: Real-time patient queuing system to optimize waiting times.
+- **Consultation Suite**: Doctors can view patient history, record symptoms, and prescribe medicines.
+- **Smart Pharmacy**: Automated stock reduction upon dispensing, with low-stock alerts.
+- **Billing System**: Encompasses doctor fees and medicine costs, supporting CASH and UPI payments.
+- **WhatsApp Integration**: Automated alerts for registration, consultation completion, and payment confirmations.
 
-*Note: Look at the terminal running the backend/Docker to see the formatted mock WhatsApp messages arriving for the patient at each step.*
+## 🛠️ Tech Stack
+
+### Frontend
+- **Framework**: React 19 (Vite)
+- **Styling**: Tailwind CSS 4
+- **State Management**: Zustand
+- **Icons**: Lucide React
+- **Routing**: React Router DOM 7
+
+### Backend
+- **Runtime**: Node.js
+- **Framework**: Express.js
+- **Language**: TypeScript
+- **ORM**: Prisma
+- **Database**: PostgreSQL
+- **Automation**: whatsapp-web.js (for real-time notifications)
+- **Auth**: JWT (JSON Web Tokens)
+
+### Infrastructure
+- **Containerization**: Docker & Docker Compose
+
+## ⚡ Quick Start (Docker)
+
+The system is fully containerized for easy deployment.
+
+1. **Clone the repository**:
+   ```bash
+   git clone <repository-url>
+   cd clinic_hms
+   ```
+
+2. **Launch with Docker Compose**:
+   ```bash
+   docker compose up --build
+   ```
+
+3. **Access the Application**:
+   - **Frontend**: [http://localhost:5173](http://localhost:5173)
+   - **Backend API**: [http://localhost:3000](http://localhost:3000)
+
+## 🧪 Testing Accounts
+
+Use the following credentials to explore the different roles (Password: `password123` for all):
+
+| Role | Phone Number |
+| :--- | :--- |
+| **Admin** | `9999999991` |
+| **Doctor** | `9999999992` |
+| **Receptionist** | `9999999993` |
+| **Pharmacist** | `9999999994` |
+
+## 🔄 Workflow Simulation
+
+1. **Receptionist**: Register a patient by entering their phone number and add them to the queue.
+2. **Doctor**: View the patient in the "Waiting Room", perform the consultation, add diagnosis/medicines, and finish.
+3. **Pharmacist**: Dispense the pending prescription (this automatically adjusts the inventory).
+4. **Receptionist (Billing)**: Search for the patient, view the final invoice, and mark it as PAID.
+
+*Note: Check the backend/Docker logs to see the formatted mock WhatsApp messages sent at each stage.*
+
+## 📂 Project Structure
+
+```text
+clinic_hms/
+├── backend/            # Express.js & Prisma API
+│   ├── prisma/         # Database schema
+│   └── src/            # API logic and routes
+├── frontend/           # React 19 & Tailwind CSS app
+│   └── src/            # UI components and stores
+└── docker-compose.yml  # Orchestration for app and DB
+```

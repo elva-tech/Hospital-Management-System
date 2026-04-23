@@ -41,7 +41,16 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { phone, password } = req.body;
+    console.log("LOGIN INTERCEPT. Phone:", phone, "Attempted Pass:", password);
+
     const user = await User.findOne({ phone });
+    console.log("FOUND USER:", user ? user.name : "NULL (NOT FOUND)");
+
+    if (user) {
+      const match = await user.matchPassword(password);
+      console.log("PASSWORD MATCH COMPARISON:", match);
+    }
+
     if (user && (await user.matchPassword(password))) {
       res.json({
         _id: user._id,
@@ -51,10 +60,10 @@ const loginUser = async (req, res) => {
         token: generateToken(user._id),
       });
     } else {
-      res.status(401).json({ message: 'Invalid phone or password' });
+      res.status(401).json({ message: 'Invalid phone number or password' });
     }
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: error.message });
   }
 };
 

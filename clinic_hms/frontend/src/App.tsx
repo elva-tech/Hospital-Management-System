@@ -5,7 +5,7 @@ import Login from './pages/Login';
 import { DashboardLayout } from './layouts/DashboardLayout';
 
 import Reception from './pages/Reception';
-import DoctorRoom from './pages/Doctor';
+import DoctorEnhanced from './pages/DoctorEnhanced';
 import Pharmacy from './pages/Pharmacy';
 import Billing from './pages/Billing';
 import Laboratory from './pages/Laboratory';
@@ -42,7 +42,7 @@ function App() {
           <Route path="/" element={<RootRouteRedirect />} />
 
           <Route path="/reception" element={<ProtectedRoute allowedRoles={['RECEPTIONIST', 'ADMIN']}><Reception /></ProtectedRoute>} />
-          <Route path="/doctor" element={<ProtectedRoute allowedRoles={['DOCTOR', 'ADMIN']}><DoctorRoom /></ProtectedRoute>} />
+          <Route path="/doctor" element={<ProtectedRoute allowedRoles={['DOCTOR', 'ADMIN']}><DoctorEnhanced /></ProtectedRoute>} />
           <Route path="/pharmacy" element={<ProtectedRoute allowedRoles={['PHARMACIST', 'ADMIN']}><Pharmacy /></ProtectedRoute>} />
           <Route path="/billing" element={<ProtectedRoute allowedRoles={['RECEPTIONIST', 'ADMIN']}><Billing /></ProtectedRoute>} />
           <Route path="/laboratory" element={<ProtectedRoute allowedRoles={['RECEPTIONIST', 'ADMIN']}><Laboratory /></ProtectedRoute>} />

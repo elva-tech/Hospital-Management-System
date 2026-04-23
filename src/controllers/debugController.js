@@ -1,4 +1,4 @@
-const { Patient, Doctor, Medicine, Consultation, Prescription, DiagnosisRequest, DiagnosisReport, PharmacySale } = require('../../models/mongodb');
+const { Patient, Doctor, Medicine, Consultation, Prescription, DiagnosisRequest, DiagnosisReport, PharmacySale } = require('../models');
 
 // @desc    Get all data from all collections for debugging/demo
 // @route   GET /api/debug/all-data

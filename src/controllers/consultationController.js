@@ -1,4 +1,4 @@
-const { Consultation, Patient, Doctor } = require('../../models/mongodb');
+const { Consultation, Patient, Doctor } = require('../models');
 
 // @desc    Create a new consultation
 // @route   POST /api/consultations

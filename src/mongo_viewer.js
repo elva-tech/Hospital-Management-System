@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { Patient, Doctor, Medicine, Consultation, Prescription, DiagnosisRequest, DiagnosisReport, PharmacySale } = require('./models/mongodb');
+const { Patient, Doctor, Medicine, Consultation, Prescription, DiagnosisRequest, DiagnosisReport, PharmacySale } = require('./models');
 
 // Specify the URI you saw in the terminal earlier
 const mongoUri = process.argv[2];

@@ -10,8 +10,8 @@ const connectDB = async () => {
   try {
     let mongoUri = process.env.MONGO_URI;
 
-    // Use In-Memory MongoDB for development/demo if no URI or if it fails
-    if (process.env.NODE_ENV === 'development' || !mongoUri) {
+    // Use In-Memory MongoDB for development/demo only if no URI is provided
+    if (!mongoUri) {
       console.log('Starting In-Memory MongoDB Server...');
       mongoServer = await MongoMemoryServer.create();
       mongoUri = mongoServer.getUri();

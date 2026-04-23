@@ -1,7 +1,21 @@
-const { Doctor, Medicine } = require('../models/mongodb');
+const { Doctor, Medicine, User } = require('../models');
 
 const seedMongoData = async () => {
   try {
+    const userCount = await User.countDocuments();
+    if (userCount === 0) {
+      const users = [
+        { name: 'Dr. Smith', phone: '1000', password: 'doc', role: 'Doctor' },
+        { name: 'Pharm. Jane', phone: '2000', password: 'pharm', role: 'Pharmacist' },
+        { name: 'Lab Tech. Bob', phone: '3000', password: 'lab', role: 'LabTech' },
+        { name: 'Super Admin', phone: '0000', password: 'admin', role: 'Admin' }
+      ];
+      for (const u of users) {
+          await User.create(u);
+      }
+      console.log('Seeded Role-Based User Accounts (Doctor: 1000/doc, Pharmacy: 2000/pharm, LabTech: 3000/lab)');
+    }
+
     const doctorCount = await Doctor.countDocuments();
     if (doctorCount > 0) return; // Already seeded
 

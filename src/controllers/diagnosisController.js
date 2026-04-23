@@ -1,4 +1,4 @@
-const { DiagnosisRequest, DiagnosisReport, Consultation } = require('../../models/mongodb');
+const { DiagnosisRequest, DiagnosisReport, Consultation } = require('../models');
 
 // @desc    Refer for diagnosis
 // @route   POST /api/diagnosis/request
