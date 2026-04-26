@@ -21,22 +21,15 @@ const C = {
   amberBg:    "#FEF3C7",
 };
 
-// ─── Sample Data ───────────────────────────────────────────────────────────────
-const INIT_INWARDS = [
-  { id: "IN-0001", supplier: "Supplier 1", date: "01/01/2025", dcNo: "001", lrNo: "001", vehicleNo: "KA-06-A-0101", items: [{ name: "PSCC File 9M/300Kg", unit: "Nos", asPerChallan: 100, actualReceipt: 95, short: 5, excess: 0, reject: 5, accepted: 85, remarks: "Damaged" }] },
-  { id: "IN-0002", supplier: "Supplier 2", date: "08/01/2025", dcNo: "002", lrNo: "002", vehicleNo: "MH-12-B-5432", items: [{ name: "Transformers", unit: "Nos", asPerChallan: 20, actualReceipt: 20, short: 0, excess: 0, reject: 2, accepted: 18, remarks: "" }] },
-  { id: "IN-0003", supplier: "Supplier 1", date: "11/01/2025", dcNo: "003", lrNo: "003", vehicleNo: "KA-06-A-0202", items: [{ name: "Horizontal X-arm", unit: "Nos", asPerChallan: 60, actualReceipt: 60, short: 0, excess: 0, reject: 0, accepted: 60, remarks: "" }, { name: "SMtr PSC Pole", unit: "Nos", asPerChallan: 50, actualReceipt: 50, short: 0, excess: 0, reject: 0, accepted: 50, remarks: "" }] },
-  { id: "IN-0004", supplier: "Supplier 1", date: "27/01/2025", dcNo: "001", lrNo: "002", vehicleNo: "KA-06-A-0101", items: [{ name: "PSCC File 9M/300Kg", unit: "Nos", asPerChallan: 100, actualReceipt: 95, short: 5, excess: 0, reject: 5, accepted: 85, remarks: "Damaged" }, { name: "PSCC File 9M/200Kg", unit: "Nos", asPerChallan: 100, actualReceipt: 90, short: 10, excess: 0, reject: 0, accepted: 90, remarks: "" }] },
-];
+// ─── Live Dynamic Data Mode ───────────────────────────────────────────────────────────────
+const API_BASE = "https://hospital-management-system-67as.onrender.com";
 
-const INIT_OUTWARDS = [
-  { id: "OUT-0001", receiver: "Site A", date: "05/01/2025", vehicleNo: "KA-06-C-1111", items: [{ name: "PSCC File 9M/300Kg", unit: "Nos", quantity: 20, remarks: "" }] },
-  { id: "OUT-0002", receiver: "Site B", date: "10/01/2025", vehicleNo: "MH-12-D-2222", items: [{ name: "Horizontal X-arm", unit: "Nos", quantity: 10, remarks: "" }] },
-];
+const INIT_INWARDS = [];
+const INIT_OUTWARDS = [];
 
-const ITEM_NAMES = ["PSCC File 9M/300Kg", "PSCC File 9Mt/200Kg", "Transformers", "Horizontal X-arm", "SMtr PSC Pole", "Rabbit Conductor", "LT Cable", "HT Cable", "Distribution Box", "Street Light Pole"];
-const SUPPLIERS  = ["Supplier 1", "Supplier 2", "Supplier 3"];
-const UNITS      = ["Nos", "Kg", "Meter", "Set", "Pair"];
+const ITEM_NAMES = ["Paracetamol 500mg", "Amoxicillin 500mg", "Iron + Folic acid", "Cetirizine 10mg", "Metformin 500mg", "Omeprazole 20mg", "Azithromycin 500mg", "ORS Sachet", "Pantoprazole 40mg", "Dolo 650mg"];
+const SUPPLIERS  = ["MedPlus Pharma", "Apollo Distributors", "Sun Pharma"];
+const UNITS      = ["Tabs", "Caps", "Bottles", "Sachets"];
 
 const TODAY = new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "2-digit", year: "numeric" }).replace(/\//g, "/");
 
@@ -445,10 +438,13 @@ function OutwardForm({ existing, nextOutwardId, onSave, onCancel }) {
 }
 
 // ─── Store Stock ──────────────────────────────────────────────────────────────
-function StoreStock({ inwards, outwards }) {
+function StoreStock({ medicines }) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
-  const stock = computeStock(inwards, outwards);
+  
+  const stock = {};
+  medicines.forEach(m => stock[m.name] = m.stock);
+  
   const items = Object.entries(stock)
     .map(([name, qty]) => ({ name, qty, ...stockStatus(qty) }))
     .filter(it => {
@@ -511,10 +507,29 @@ function StoreStock({ inwards, outwards }) {
 }
 
 // ─── Root App ─────────────────────────────────────────────────────────────────
+import { useEffect } from "react";
+
 export default function InventoryManagement({ onBack }) {
   const [tab,      setTab]      = useState("inward");
   const [inwards,  setInwards]  = useState(INIT_INWARDS);
   const [outwards, setOutwards] = useState(INIT_OUTWARDS);
+  const [medicines, setMedicines] = useState([]);
+
+  useEffect(() => {
+     fetchInventory();
+  }, []);
+
+  async function fetchInventory() {
+     const token = localStorage.getItem("hms_token");
+     if(!token) return;
+     try {
+       const res = await fetch(`${API_BASE}/api/inventory`, { headers: { Authorization: `Bearer ${token}` }});
+       const json = await res.json();
+       if(json.success) {
+         setMedicines(json.data);
+       }
+     } catch(e) { console.error("Inventory error", e); }
+  }
 
   // inward view state
   const [inwardView, setInwardView]   = useState("list"); // list | add | detail
@@ -524,12 +539,27 @@ export default function InventoryManagement({ onBack }) {
   const [outwardView, setOutwardView]   = useState("list");
   const [selectedOutward, setSelOutward] = useState(null);
 
-  function saveInward(data) {
+  async function saveInward(data) {
     setInwards(prev => {
       const exists = prev.find(i => i.id === data.id);
       return exists ? prev.map(i => i.id === data.id ? data : i) : [...prev, data];
     });
     setInwardView("list");
+    
+    const token = localStorage.getItem("hms_token");
+    for(const it of data.items) {
+       const m = medicines.find(med => med.name === it.name);
+       if(m && it.accepted > 0) {
+          try {
+            await fetch(`${API_BASE}/api/inventory/inward`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+              body: JSON.stringify({ medicine_id: m._id, quantity: parseInt(it.accepted) })
+            });
+          } catch(e) {}
+       }
+    }
+    fetchInventory();
   }
 
   function saveOutward(data) {
@@ -563,7 +593,7 @@ export default function InventoryManagement({ onBack }) {
       if (outwardView === "add")    return <OutwardForm nextOutwardId={nextId(outwards, "OUT")} onSave={saveOutward} onCancel={() => setOutwardView("list")} />;
       if (outwardView === "detail") return <OutwardForm existing={selectedOutward} nextOutwardId={selectedOutward?.id} onSave={saveOutward} onCancel={() => setOutwardView("list")} />;
     }
-    if (tab === "stock") return <StoreStock inwards={inwards} outwards={outwards} />;
+    if (tab === "stock") return <StoreStock medicines={medicines} />;
   }
 
   return (

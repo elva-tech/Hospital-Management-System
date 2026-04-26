@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import DoctorModule from "./DoctorModule";
 import PharmacyModule from "./PharmacyModule";
 import DiagnosticLab from "./DiagnosticLab";
+import NurseModule from "./NurseModule";
 import Login from "./Login";
 
 export default function App() {
@@ -73,6 +74,7 @@ export default function App() {
         {user?.role === 'Doctor' && <DoctorModule />}
         {user?.role === 'Pharmacist' && <PharmacyModule />}
         {user?.role === 'LabTech' && <DiagnosticLab />}
+        {(user?.role === 'Receptionist' || user?.role === 'Nurse') && <NurseModule />}
         {user?.role === 'Admin' && <DoctorModule />}
       </div>
     </div>

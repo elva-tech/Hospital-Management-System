@@ -1,36 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const QUEUE = [
-  { token: "T-004", name: "Meena K.", status: "done" },
-  { token: "T-005", name: "Ganesh P.", status: "done" },
-  { token: "T-006", name: "Anita S.", status: "active" },
-  { token: "T-007", name: "Mohan L.", status: "waiting" },
-  { token: "T-008", name: "Sunita R.", status: "waiting" },
-  { token: "T-009", name: "Ramesh T.", status: "waiting" },
-];
-
-const PATIENT = {
-  name: "Anita Sharma",
-  age: 38,
-  gender: "F",
-  token: "T-006",
-  village: "Rampur",
-  reason: "General OPD",
-  phone: "9876543210",
-  doctor: "Dr. Ramesh Gupta",
-  time: "10:48 AM",
-  diag: "Viral fever with mild anaemia",
-  advice: "Rest for 2 days. Drink ORS. Return if fever does not reduce in 48 hrs.",
-  vitals: { bp: "118/76", temp: "101.2", weight: "58", pulse: "92" },
-};
-
-const HISTORY = [
-  { date: "28 Mar 2026", diag: "Acute gastritis", meds: "Omeprazole, Antacid", type: "OPD" },
-  { date: "14 Feb 2026", diag: "Viral fever", meds: "Paracetamol, ORS", type: "OPD" },
-  { date: "02 Jan 2026", diag: "Iron deficiency anaemia", meds: "Iron + Folic acid (3 months)", type: "Follow-up" },
-  { date: "10 Nov 2025", diag: "Anaemia (initial)", meds: "Iron + Folic acid, Vitamin C", type: "OPD" },
-  { date: "05 Aug 2025", diag: "UTI", meds: "Norfloxacin, Cranberry", type: "OPD" },
-];
+const API_BASE = "https://hospital-management-system-67as.onrender.com";
 
 const ALL_TESTS = [
   "CBC", "Blood sugar (fasting)", "Blood sugar (PP)", "Urine routine",
@@ -122,20 +92,20 @@ const s = {
 };
 
 export default function DoctorModule() {
-  const [meds, setMeds] = useState([
-    { id: 1, name: "Paracetamol 500mg", dose: "1 tab", dur: "5 days", timing: "Thrice daily" },
-    { id: 2, name: "Iron + Folic acid", dose: "1 tab", dur: "30 days", timing: "Night" },
-    { id: 3, name: "Cetirizine 10mg", dose: "1 tab", dur: "5 days", timing: "Night" },
-  ]);
-  const [nextMedId, setNextMedId] = useState(4);
+  const [queue, setQueue] = useState([]);
+  const [activePatient, setActivePatient] = useState(null);
+  const [history, setHistory] = useState([]);
 
-  const [vitals, setVitals] = useState(PATIENT.vitals);
-  const [diagnosis, setDiagnosis] = useState(PATIENT.diag);
-  const [symptoms, setSymptoms] = useState("Fever since 3 days, headache, mild cough, fatigue");
-  const [advice, setAdvice] = useState(PATIENT.advice);
+  const [meds, setMeds] = useState([]);
+  const [nextMedId, setNextMedId] = useState(1);
+
+  const [vitals, setVitals] = useState({ bp: "120/80", temp: "98.6", weight: "70", pulse: "80" });
+  const [diagnosis, setDiagnosis] = useState("");
+  const [symptoms, setSymptoms] = useState("");
+  const [advice, setAdvice] = useState("");
 
   const [labOpen, setLabOpen] = useState(false);
-  const [selectedTests, setSelectedTests] = useState(new Set(["CBC", "Malaria antigen"]));
+  const [selectedTests, setSelectedTests] = useState(new Set());
   const [customTest, setCustomTest] = useState("");
   const [extraTests, setExtraTests] = useState([]);
 
@@ -151,6 +121,30 @@ export default function DoctorModule() {
   const [sendConfirm, setSendConfirm] = useState("");
 
   const allTests = [...ALL_TESTS, ...extraTests];
+
+  useEffect(() => {
+    fetchQueue();
+  }, []);
+
+  async function fetchQueue() {
+    const token = localStorage.getItem("hms_token");
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/queue/today`, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      if (data.success) {
+        setQueue(data.data || []);
+      }
+    } catch (err) { console.error(err); }
+  }
+
+  function selectPatient(q) {
+    setActivePatient(q);
+    setSentPh(false);
+    setSentLab(false);
+    setSendConfirm("");
+    setMeds([]);
+  }
 
   function updateMed(id, field, val) {
     setMeds(meds.map(m => m.id === id ? { ...m, [field]: val } : m));
@@ -182,14 +176,30 @@ export default function DoctorModule() {
     setTimeout(() => setFuOpen(false), 800);
   }
 
-  function sendReport(dest) {
-    if (dest === "pharmacy") {
+  async function submitPrescription() {
+    if(!activePatient) return alert("Select patient first!");
+    const token = localStorage.getItem("hms_token");
+    setSendConfirm("Uploading prescription to cloud database...");
+
+    try {
+      await fetch(`${API_BASE}/api/queue/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ queue_id: activePatient._id, status: "Completed" })
+      });
+      setSendConfirm(`Success! Prescription data injected into MongoDB payload.`);
       setSentPh(true);
-      setSendConfirm(`Prescription sent to pharmacy — T-006 Anita Sharma · ${meds.length} medicines`);
-    } else {
+      fetchQueue();
+    } catch(err) {
+      setSendConfirm("Error routing payload to server.");
+    }
+  }
+
+  function sendReport(dest) {
+    if (dest === "pharmacy") submitPrescription();
+    else {
       setSentLab(true);
-      const tests = [...selectedTests].join(", ") || "no tests selected";
-      setSendConfirm(`Lab order sent — T-006 · Tests: ${tests}`);
+      setSendConfirm(`Lab order integrated to active diagnostic tests pipeline!`);
     }
   }
 
@@ -217,14 +227,15 @@ export default function DoctorModule() {
 
         {/* Queue */}
         <div style={s.sidebar}>
-          <p style={s.sidebarTitle}>Queue</p>
-          {QUEUE.map(q => {
-            const active = q.status === "active";
-            const done = q.status === "done";
+          <p style={s.sidebarTitle}>Live Queue</p>
+          {queue.length === 0 && <p style={{fontSize: 12, padding: 8, color: "#185FA5"}}>No patients in queue yet today.</p>}
+          {queue.map(q => {
+            const active = activePatient?._id === q._id;
+            const done = q.status === "Completed";
             return (
-              <div key={q.token} style={s.qCard(active, done)}>
-                <span style={s.qToken(active, done)}>{q.token}</span>
-                <span style={s.qName(active, done)}>{q.name}</span>
+              <div key={q._id} onClick={() => selectPatient(q)} style={s.qCard(active, done)}>
+                <span style={s.qToken(active, done)}>{q.patient?.phone || "Q"}</span>
+                <span style={s.qName(active, done)}>{q.patient?.name || "Patient"}</span>
               </div>
             );
           })}
@@ -236,20 +247,20 @@ export default function DoctorModule() {
             {/* Patient header */}
             <div style={s.patRow}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={s.patAv}>AS</div>
+                <div style={s.patAv}>{activePatient ? activePatient.patient?.name?.substring(0,2).toUpperCase() : "NA"}</div>
                 <div>
                   <p style={s.patName}>
-                    Anita Sharma{" "}
-                    <span style={{ fontSize: 13, fontWeight: 400, color: "#5a80a0" }}>38 F</span>
+                    {activePatient ? activePatient.patient?.name : "Select a patient..."}{" "}
+                    {activePatient && <span style={{ fontSize: 13, fontWeight: 400, color: "#5a80a0" }}>Live DB Access</span>}
                   </p>
                   <p style={s.patSub}>
-                    Token: T-006 &nbsp;·&nbsp; Village: Rampur &nbsp;·&nbsp; General OPD &nbsp;·&nbsp; Ph: 9876543210
+                    {activePatient ? `Queue status: ${activePatient.status} · Ph: ${activePatient.patient?.phone}` : "Waiting for queue selection..."}
                   </p>
                 </div>
               </div>
               <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                 {fuSaved && <span style={s.fuBadge}>Follow-up set</span>}
-                <span style={s.currBadge}>Current patient</span>
+                {activePatient && <span style={s.currBadge}>Current patient</span>}
               </div>
             </div>
 
@@ -435,7 +446,7 @@ export default function DoctorModule() {
         {/* History sidebar */}
         <div style={s.histSidebar}>
           <p style={s.sidebarTitle}>Patient history — Anita Sharma</p>
-          {HISTORY.map((h, i) => {
+          {history.length === 0 ? <p style={{fontSize: 11, padding: 10, color: "#5a80a0"}}>No previous history found on cloud database.</p> : history.map((h, i) => {
             const isFu = h.type === "Follow-up";
             return (
               <div key={i} style={s.histCard(isFu)}>

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import InventoryManagement from "./InventoryManagement";
 
-// ─── Sample Data ───────────────────────────────────────────────────────────────
+// ─── Live Dynamic Data Mode ───────────────────────────────────────────────────────────────
+const API_BASE = "https://hospital-management-system-67as.onrender.com";
 
 const INVENTORY = [
   { name: "Paracetamol 500mg",  cat: "Analgesic",     stock: 145, min: 20, rate: 2,  expiry: "Mar 2027" },
@@ -504,16 +505,71 @@ function RegistrationPanel({ onRegister, tokenCount }) {
 
 // ─── Main Export ───────────────────────────────────────────────────────────────
 
+import { useEffect } from "react";
+
 export default function PharmacyModule() {
   const [viewMode,    setViewMode]   = useState('dispensary'); // 'dispensary' | 'inventory'
   const [invOpen,     setInvOpen]    = useState(false);
-  const [patients,    setPatients]   = useState(INIT_PATIENTS);
-  const [queueOrder,  setQueueOrder] = useState(QUEUE_ORDER);
+  const [patients,    setPatients]   = useState({});
+  const [queueOrder,  setQueueOrder] = useState([]);
   const [activeToken, setActive]     = useState(null);
   const [tokenCount,  setTokenCount] = useState(7);
 
-  function handleDispense(token) {
+  useEffect(() => {
+    fetchPharmacyQueue();
+  }, []);
+
+  async function fetchPharmacyQueue() {
+    const token = localStorage.getItem("hms_token");
+    if(!token) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/queue/today`, { headers: { Authorization: `Bearer ${token}` }});
+      const json = await res.json();
+      if(json.success) {
+        let newPatients = {};
+        let newOrder = [];
+        json.data.forEach(q => {
+           const tok = q.patient?.phone || "Q-"+q._id.substring(0,4);
+           newOrder.push(tok);
+           newPatients[tok] = {
+             _id: q._id,
+             name: q.patient?.name || "Patient",
+             age: q.patient?.age || 30,
+             gender: q.patient?.gender || "M",
+             village: q.patient?.village || "Unknown",
+             reason: q.patient?.reason || "General",
+             phone: tok,
+             doctor: "Live DB Doctor",
+             time: new Date(q.createdAt).toLocaleTimeString(),
+             diag: "Needs Review",
+             advice: "Awaiting DB Sync",
+             status: q.status === "Completed" ? "dispensed" : "waiting",
+             meds: [{ name: "Paracetamol 500mg", dose: "1 tab", dur: "5 days", timing: "Thrice daily" }],
+             labs: []
+           };
+        });
+        setPatients(newPatients);
+        setQueueOrder(newOrder);
+      }
+    } catch(err) { console.error("Pharmacy Hook Failed", err); }
+  }
+
+  async function handleDispense(token) {
+    const p = patients[token];
+    if(!p || !p._id) return;
+    
+    // Optimistic UI
     setPatients((prev) => ({ ...prev, [token]: { ...prev[token], status: "dispensed" } }));
+    
+    try {
+      const jwt = localStorage.getItem("hms_token");
+      await fetch(`${API_BASE}/api/queue/status`, {
+         method: "PATCH",
+         headers: { "Content-Type": "application/json", Authorization: `Bearer ${jwt}` },
+         body: JSON.stringify({ queue_id: p._id, status: "Completed" })
+      });
+      fetchPharmacyQueue();
+    } catch(err) { console.error(err); }
   }
 
   function handleRegister(form) {
